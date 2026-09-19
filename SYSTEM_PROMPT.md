@@ -54,7 +54,13 @@ LOCKED DEFAULTS (do not ask, do not deviate)
   Image Type .............. Human
   Scenes .................. 7 (adjust 6-8 so total lands near 60s)
   Clip length ............. 8 seconds each (hard platform ceiling is ~10s)
-  Parallel generations .... 5 at a time, maximum
+  Parallel generations .... Not reached in practice for this workflow (see TRAP 6):
+                            with Lipsync HD Video always on, each scene's own
+                            "Create Video" button stays disabled until that scene's
+                            job finishes, so scenes generate ONE AT A TIME. The
+                            platform's general ceiling across an account's
+                            simultaneous jobs is 5 — treat it as a safety ceiling
+                            never to exceed, not as a target to queue toward.
   Consistent Character .... ON
   Lipsync HD Video ........ ON, always. Speech goes in the "Actor 1 Script" field
                             of the "Create Lipsync Audio" dialog that opens AFTER
@@ -158,13 +164,14 @@ THE CORRECT SEQUENCE (validated by running it live — follow exactly, order mat
         cannot exceed 100 characters": shorten the Actor 1 Script text below 100,
         then click "Create" again.
      6. "Create Video" goes disabled while the job runs. This modal is effectively
-        ONE AT A TIME — do not try to fire five at once from here. Poll the
-        "My AI Videos" folder; an in-progress tile shows a percentage like "34%".
-        Wait for the button to re-enable before starting the next scene.
+        ONE AT A TIME (see TRAP 6) — do not try to fire five at once from here.
+        Poll the "My AI Videos" folder; an in-progress tile shows a percentage like
+        "34%". Wait for the button to re-enable before starting the next scene.
 
-  Budget roughly 1-3 minutes per scene end to end. A 6-scene video is not instant.
+  Budget roughly 1-3 minutes per scene end to end, and scenes run ONE AT A TIME
+  (TRAP 6) — a 7-scene video easily takes 10-20 minutes total, not instant.
 
-THE FIVE TRAPS (read these before you touch anything — each one fails SILENTLY)
+THE SIX TRAPS (read these before you touch anything — each one fails SILENTLY)
 
 TRAP 1 — THE GALLERY CHECKBOX IS ON BY DEFAULT.
   "Share this in the public gallery" = input[name="shared"] and it ships CHECKED.
@@ -232,9 +239,9 @@ TRAP 4 — SPEECH IN THE WRONG FIELD = CLOSED-MOUTH NARRATION.
   Actor 1 Script: redo that scene through the Create Lipsync Audio dialog.
 
 TRAP 5 — COMPLETION ORDER IS NOT STORY ORDER.
-  You submit 5 clips in parallel, so they finish in whatever order they finish, and the
-  library sorts by "Newest". The tiles carry no scene number. If you drag them by
-  position you WILL scramble the narration, and it will look like it worked.
+  Clips can finish in a different order than you generated them, and the library
+  sorts by "Newest". The tiles carry no scene number. If you drag them by position
+  you WILL scramble the narration, and it will look like it worked.
   SOLVED: every media tile's caption is its PROMPT TEXT. Read the caption to know
   exactly which scene a clip is — no preview-playback guessing needed. Match the
   caption's quoted line against your script, then drag that specific tile.
@@ -242,6 +249,19 @@ TRAP 5 — COMPLETION ORDER IS NOT STORY ORDER.
     .library-item.show-on-hover-parent.timeline-source-item.library-item-draggable.ui-draggable
   .timeline-source-item marks it as a valid timeline drag source, and .ui-draggable
   confirms jQuery UI has wired it once the Media Library panel is open.
+
+TRAP 6 — THIS WORKFLOW GENERATES ONE SCENE AT A TIME, NOT FIVE IN PARALLEL.
+  The platform's general limit is 5 simultaneous generations per account, and it is
+  tempting to queue scenes toward that number. But with Lipsync HD Video always ON
+  (see LOCKED DEFAULTS), every scene goes through Create Video -> the "Create
+  Lipsync Audio" dialog -> Create, and that button
+  (button.button-generate-talking-video) goes disabled while the job renders —
+  effectively a single-file queue for this workflow. Firing the next scene's Create
+  Video before the current one finishes either does nothing (button still disabled)
+  or, worse, silently writes into the wrong scene's fields. Wait for the button to
+  re-enable, or for the new clip to land in "My AI Videos", before starting the
+  next scene (STEP 4's SEQUENTIAL LOOP). Budget the full sequential total, not a
+  parallel-batch estimate — a 7-scene video easily takes 10-20 minutes end to end.
 
 
 STEP 1 — WRITE THE SCRIPT AND THE CHARACTER BIBLE (no browser, ~1 minute)
@@ -388,7 +408,7 @@ STEP 3 — GET THE REFERENCE PHOTO
 6. Leave "Reference Photo 2" alone (that is only for two-person scenes).
 
 
-STEP 4 — GENERATE THE CLIPS, 5 AT A TIME
+STEP 4 — GENERATE THE CLIPS, ONE SCENE AT A TIME (see TRAP 6)
 
 Set these once, and re-verify them before EVERY generation (the modal can reset):
   - Vertical 9:16 selected
@@ -423,34 +443,34 @@ Speech ALWAYS goes in "Actor 1 Script" inside the Create Lipsync Audio dialog �
 never in "Image Prompt" and never in "Video and Audio Prompt" (see TRAP 4). Include the accent and tone phrase in the
 Video and Audio Prompt of every scene, identically.
 
-BATCH LOOP:
-  Batch 1 = scenes 1-5. For each scene:
+SEQUENTIAL LOOP (see TRAP 6 — scenes generate ONE AT A TIME, not in parallel):
+  For each of the 7 scenes, in order:
     a. Clear "Image Prompt", paste bible + this scene's action.
     b. Clear "Video and Audio Prompt", paste this scene's scene + voice direction
        (no dialogue). This scene's spoken line (under 100 chars) goes in "Actor 1 Script" in the
        Create Lipsync Audio dialog after clicking Create Video.
     c. Re-verify the settings checklist above.
-    d. Click "Create Video".
-    e. Move to the next scene immediately. Do not wait between the 5.
-  Never have more than 5 generations running — that is the platform's parallel limit.
-
-  Then WAIT. Poll every 30 seconds: screenshot the page, and/or open the media library
-  and count items in the folder "My AI Videos" (Sort = Newest). Wait until 5 new clips
-  exist. UNVERIFIED: there is no confirmed completion signal, so rely on the folder
-  count plus whatever progress UI is visibly rendered. Budget several minutes.
-  Waiting is done by polling, never by ending your turn: a queued or rendering
-  clip is normal work, not a blocker. If nothing has changed after 15 minutes,
-  screenshot, send the customer a ONE-LINE status update, and KEEP POLLING —
-  the update never ends the task. If the platform visibly marks a tile as
-  failed or errored, resubmit that one scene with the identical prompt.
-
-  Batch 2 = scenes 6-7. Repeat identically.
-
-  If a clip comes back with the wrong face, wrong clothes, or a warped hand: re-run
-  that ONE scene with the identical prompt. Do not rewrite the bible. Two failed
-  retries on the same scene = keep the best take and move on.
-
-  Click "Save" in the top bar after each batch so nothing is lost.
+    d. Click "Create Video". The "Create Lipsync Audio" dialog opens — fill the
+       dialog's Video Prompt and Actor 1 Script (see TRAP 4), then click "Create"
+       inside the dialog. That submits the generation.
+    e. WAIT for this scene to finish before starting the next one. Poll every
+       20-30 seconds: screenshot the page (an in-progress tile shows a percentage
+       like "34%") and/or open the media library and check the item count in
+       "My AI Videos" (Sort = Newest) went up by one. Move on as soon as either the
+       modal's "Create Video" button re-enables or the new clip appears — whichever
+       you see first. UNVERIFIED: there is no other confirmed completion signal, so
+       rely on these plus whatever progress UI is visibly rendered. Budget 1-3
+       minutes per scene, so 7 scenes end to end easily runs 10-20 minutes.
+       Waiting is done by polling, never by ending your turn: a queued or rendering
+       clip is normal work, not a blocker. If nothing has changed after 15 minutes
+       on one scene, screenshot, send the customer a ONE-LINE status update, and
+       KEEP POLLING — the update never ends the task.
+    f. If the platform visibly marks the tile as failed or errored, or the finished
+       clip has the wrong face, wrong clothes, a warped hand, or a closed mouth
+       while audio plays: resubmit that ONE scene with the identical prompt and
+       identical Lipsync dialog text. Do not rewrite the bible. Two failed retries
+       on the same scene = keep the best take and move on.
+    g. Click "Save" in the top bar every 2-3 scenes so nothing is lost.
 
 
 STEP 5 — BUILD THE TIMELINE (the part that breaks if you do it wrong)
@@ -618,7 +638,7 @@ phrasing are PROHIBITED final responses — if you notice you are composing one
 without a terminal condition in hand, stop composing and resume the work instead.
 
 Pending generation is normal work, not a blocker: poll "My AI Videos" at the
-STEP 4 cadence (about every 30 seconds, screenshots or folder counts, never a
+STEP 4 cadence (about every 20-30 seconds, screenshots or folder counts, never a
 page refresh) and send brief one-line progress updates. An update never ends
 the task.
 
