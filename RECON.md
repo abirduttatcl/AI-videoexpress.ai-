@@ -39,15 +39,19 @@ this current layout; the 6-scene example retained in `character-prompting.md` §
 updated to the same field layout (it predates the emotional-wave rule, which is why it
 isn't tagged with emotions — see the Rama–Ravana example for that).
 
-One further, separate inconsistency was noticed but **not** resolved here and is left for
-a future pass: `SYSTEM_PROMPT.md` itself gives two different accounts of how parallel the
-lipsync generation step is. Its `LOCKED DEFAULTS` and `STEP 4 BATCH LOOP` describe queuing
-up to 5 scenes in parallel, matching the platform-wide 5-generation limit; but its own
-`THE CORRECT SEQUENCE` §B step 6 describes the Create Video button going disabled while a
-lipsync job runs, "effectively ONE AT A TIME." `SKILL.md` Phase 6 now tells the agent to
-verify empirically (screenshot after each `Create Video` click) rather than assume either
-account, since resolving which is actually true requires a live run this package can't
-perform.
+**Update — also resolved:** `SYSTEM_PROMPT.md` used to give two different accounts of how
+parallel the lipsync generation step is. Its `LOCKED DEFAULTS` and `STEP 4 BATCH LOOP`
+described queuing up to 5 scenes in parallel, matching the platform-wide 5-generation
+limit; but its own `THE CORRECT SEQUENCE` §B step 6 described the Create Video button
+going disabled while a lipsync job runs, "effectively ONE AT A TIME." Since Lipsync HD
+Video is ON for every scene in this workflow (it is a fixed default), the one-at-a-time
+account is the one that actually governs — the 5-parallel figure is the platform's
+general account-wide ceiling, not a number this workflow's own scene loop reaches.
+`SYSTEM_PROMPT.md` now names this explicitly as TRAP 6, `LOCKED DEFAULTS`' "Parallel
+generations" line points to it instead of asserting 5, and STEP 4's loop was renamed from
+a parallel "BATCH LOOP" to a "SEQUENTIAL LOOP." `SKILL.md` Phase 6 and
+`references/character-prompting.md` were updated to match (they already generate one
+scene at a time and now say so directly instead of hedging between the two accounts).
 
 ---
 

@@ -43,7 +43,7 @@ everything. If a filename below is missing, list `references/` and read what is 
 | Scenes | 7 (adjust 6–8 so total lands near 60s) |
 | Clip length | ≤ 10 seconds each (an architectural ceiling of the video engine, not a setting) |
 | Target runtime | ~60 seconds total |
-| Parallel generations | 5 at a time, maximum |
+| Parallel generations | Not reached in practice — with Lipsync HD Video always on, scenes generate ONE AT A TIME (see `SYSTEM_PROMPT.md` TRAP 6). The platform's general ceiling is 5 simultaneous jobs; treat it as a safety limit, not a target. |
 | Use Consistent Character | ON |
 | Lipsync HD Video | ON, always. Speech goes in the Create Lipsync Audio dialog's **Actor 1 Script** field, opened after clicking Create Video — never in Image Prompt or Video and Audio Prompt (see Phase 6) |
 | Share this in the public gallery | **CHECKED BY DEFAULT — you must actively untick it every time** |
@@ -184,15 +184,15 @@ For each scene, in order:
      the app rejects it as too long, shorten it and submit again.
    - Click **Create** inside the dialog. That submits the actual generation.
 
-Batching: the platform's stated parallel-generation limit is **5**. Queue up to 5 scenes this way,
-then wait. In practice the Create Video / Create Lipsync Audio flow has also been observed to disable
-its own **Create Video** button until the current job finishes, i.e. effectively one-at-a-time —
-treat that as the safer assumption for lipsync scenes: screenshot after each `Create Video` click and
-confirm the button either re-enables or a new slide appears before starting the next scene, rather
-than firing all 5 blind. Poll the `My AI Videos` folder in the Media Library (and any visible job UI,
-including in-progress percentage badges) until the batch is finished — the exact completion signal is
-unverified, so verify by counting finished items, not by assuming a timer. Give the user a one-line
-progress note per batch. Never ask them anything.
+Sequencing: with Lipsync HD Video always on, every scene goes through Create Video → the Create
+Lipsync Audio dialog → Create, and that submit button disables while the job renders — this workflow
+generates scenes **one at a time**, not toward the platform's general 5-parallel ceiling (see
+`SYSTEM_PROMPT.md` TRAP 6). Screenshot after each `Create Video` click and confirm the button
+re-enables, or the new clip appears in `My AI Videos`, before starting the next scene. Poll the
+`My AI Videos` folder in the Media Library (and any visible job UI, including in-progress percentage
+badges) — the exact completion signal is unverified, so verify by counting finished items, not by
+assuming a timer. Give the user a one-line progress note every couple of scenes. Never ask them
+anything.
 
 If a clip comes back with a different-looking person, a closed mouth while audio plays, or the wrong
 face/clothes, regenerate that one scene with the identical prompts (image, video, and lipsync dialog
