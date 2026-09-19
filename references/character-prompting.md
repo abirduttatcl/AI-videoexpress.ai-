@@ -1,9 +1,14 @@
 # Character Prompting — Keeping One Person Looking Like One Person
 
 This file is for the **agent**, not the customer. The customer answers two questions and never sees any
-of this. Everything here is about what you type into the two textareas in the
-**Create Video From Prompt** modal so that six separately-generated clips look like six shots of the
-same human being in the same room on the same afternoon.
+of this. Everything here is about what you type into the generator modal's two textareas, and into the
+Create Lipsync Audio dialog that opens after Create Video, so that seven separately-generated clips look
+and sound like seven shots of the same human being in the same room on the same afternoon.
+
+> **Field layout note:** this file follows `SYSTEM_PROMPT.md`'s and `RECON.md`'s current convention:
+> spoken dialogue goes in the Create Lipsync Audio dialog's **Actor 1 Script** field, never in the
+> generator modal's Video and Audio Prompt. See `RECON.md` §0 for why, and
+> `references/examples/rama-ravana-final-battle.md` for a fully worked example in this layout.
 
 The backend is a diffusion-transformer latent video engine that renders picture and audio together in one pass. Never name or speculate about the specific model to a customer. It has no memory between generations. Every clip is generated from
 scratch. The *only* things carrying identity forward are:
@@ -86,15 +91,23 @@ anything that changes over time ("halfway through the day"), and any plural or u
 
 ---
 
-## 3. The two prompt fields
+## 3. The prompt fields — and where speech actually goes
 
-The modal has two textareas and they do different jobs. Verified placeholders tell you exactly how
-the platform expects them to be used:
+The generator modal has two textareas, and — once Lipsync HD Video is ticked and you click Create
+Video — a separate **Create Lipsync Audio** dialog opens with two fields of its own. All four do
+different jobs:
 
-| Field | Verified placeholder | What you put in it |
+| Field | Where | What you put in it |
 |---|---|---|
-| **Image Prompt** | "A man drinking coffee in a rainy cafe" | The frozen character bible + the one-line action/expression for this scene. **No speech. No audio. No dialogue.** |
-| **Video and Audio Prompt** | "He takes a sip of coffee. Include the sound of raindrops and him saying 'delicious' under his breath" | The motion, the spoken line in quotes, the accent and tone, and the room sound. |
+| **Image Prompt** | Generator modal, placeholder "A man drinking coffee in a rainy cafe" | The frozen character bible + the one-line action/expression for this scene. **No speech. No audio. No dialogue.** |
+| **Video and Audio Prompt** | Generator modal, placeholder starting "He takes a sip of coffee..." | The motion/mood/camera description for this scene, plus the frozen accent/tone/pace voice line, plus a room-sound clause. **No dialogue** — see the warning below. |
+| **Video Prompt** (dialog's own `textarea[name="prompt"]`) | Create Lipsync Audio dialog | One line naming the actor and directing *how* they deliver the line — the emotion, the performance. No dialogue text. |
+| **Actor 1 Script** (`#opt_prompt_actor1`) | Create Lipsync Audio dialog | The spoken words for this scene, under 100 characters — the field enforces this and rejects longer scripts. |
+
+**Do not write dialogue into the Video and Audio Prompt.** On this app that has produced
+"closed-mouth narration" — a clip where the audio plays as a voiceover but the character's lips never
+move. It looks finished and slips through unnoticed unless you check for it. Speech belongs only in
+Actor 1 Script.
 
 ### Image Prompt template
 
@@ -121,9 +134,8 @@ Bad action lines — every one of these breaks the shot:
 ### Video and Audio Prompt template
 
 ```
-[MOTION: one short sentence describing how he moves while speaking.]
-He says, "[SPOKEN LINE — 20-25 words max for a 10-second clip]"
-[VOICE: accent + tone + pace.]
+[MOTION: one short sentence describing how he moves while listening/speaking.]
+[VOICE: accent + tone + pace — frozen, identical every scene.]
 [ROOM SOUND: one clause.]
 ```
 
@@ -131,24 +143,40 @@ Filled example:
 
 ```
 He speaks directly to the camera, small natural head movements, hands stay out of frame.
-He says, "Your morning routine isn't broken. You just built it for somebody else's life."
 Neutral American English accent, warm confident tone, natural conversational pace.
 Quiet indoor room tone, no music.
 ```
 
-Do not repeat the character bible in this field. It is the image that carries appearance; this field
-carries performance.
+### Create Lipsync Audio dialog — Video Prompt and Actor 1 Script
+
+Opens after you click **Create Video** with Lipsync HD Video ticked. This dialog has its **own**
+`textarea[name="prompt"]` — a bare `#opt_prompt` selector at this point still matches the *generator
+modal's* field, not the dialog's, so scope every query from `#opt_prompt_actor1` with `.closest(...)`,
+or click by screenshot coordinates.
+
+Filled example, continuing the scene above:
+
+```
+Video Prompt (dialog): Actor 1 is the man in the charcoal-grey sweater. He speaks with warm,
+confident conviction, direct to camera.
+
+Actor 1 Script: Your morning routine isn't broken. You just built it for someone else's life.
+```
+
+Do not repeat the character bible in either dialog field. The image carries appearance; the Video and
+Audio Prompt carries scene mood and the frozen voice; the dialog carries performance and the words
+themselves.
 
 ---
 
 ## 4. Specifying voice and accent in text
 
-There is no voice-picker dropdown in this modal. Voice is specified **in words**, inside the
-**Video and Audio Prompt**, right after the spoken line. Always give three things — accent, tone,
-pace — in that order, and use the identical wording in every scene. A voice that shifts between
-clips is as jarring as a face that shifts.
+There is no voice-picker dropdown anywhere in this flow. Voice *character* (accent, tone, pace) is
+specified in words, inside the generator modal's **Video and Audio Prompt**, and stays frozen across
+every scene. The *delivery* of a given line (its emotion, its performance) is specified separately,
+per scene, in the Create Lipsync Audio dialog's own Video Prompt field.
 
-| Want | Write |
+| Want | Write in Video and Audio Prompt (frozen every scene) |
 |---|---|
 | Default / broadest reach | `Neutral American English accent, warm confident tone, natural conversational pace.` |
 | Authority, expert framing | `Neutral American English accent, calm measured tone, deliberate unhurried pace.` |
@@ -159,20 +187,25 @@ clips is as jarring as a face that shifts.
 
 Rules:
 
-- Pick one line from the table (or write one in the same shape) and reuse it **verbatim** in all six
-  scenes. It is part of the frozen set, like the bible.
+- Pick one line from the table (or write one in the same shape) and reuse it **verbatim** in the
+  Video and Audio Prompt for all seven scenes. It is part of the frozen set, like the bible.
 - Never write a gendered voice descriptor that contradicts the character in the image.
 - Never name a real person's voice, a celebrity, or a public figure. Describe the sound, not a human.
-- Keep spoken lines to **20-25 words** per clip. That is roughly 10 seconds at conversational pace,
-  which is the engine's hard per-clip ceiling. Over-writing the line is the most common cause of a
-  clip that cuts off mid-sentence.
-- End with a room-sound clause (`Quiet indoor room tone, no music.`). Silence is not a default; if
-  you don't specify the acoustic, scenes can arrive with mismatched ambience.
+- Keep every Actor 1 Script line **under 100 characters** — the dialog enforces this and rejects
+  longer scripts. That's roughly 12–15 spoken words, about 5–7 seconds at conversational pace.
+  Over-writing the line is the most common cause of a rejected submission.
+- End the Video and Audio Prompt with a room-sound clause (`Quiet indoor room tone, no music.`).
+  Silence is not a default; if you don't specify the acoustic, scenes can arrive with mismatched
+  ambience.
+- In the Lipsync dialog's Video Prompt, match the scene's emotion tag: name the actor, then direct the
+  performance in plain language ("she excitedly says it", "he whispers, furious", "voice breaking with
+  sadness"). Any emotion, any phrasing, including physical performance, is fine there — it's the one
+  field in this flow meant to vary scene to scene.
 
-For talking scenes, tick **Lipsync HD Video**. Its verified in-app hint: *"works best for Human,
-Photorealistic (Cinematic), or 3D images that include a person"* — which is exactly the configuration
-this workflow uses (Image Type: `human`). Do not tick **Video Only (No Sound)** for any scene where
-the character speaks.
+For talking scenes, tick **Lipsync HD Video** — in this workflow that means every scene. Its verified
+in-app hint: *"works best for Human, Photorealistic (Cinematic), or 3D images that include a person"*
+— which is exactly the configuration this workflow uses (Image Type: `human`). Do not tick
+**Video Only (No Sound)** for any scene where the character speaks.
 
 ---
 
@@ -196,8 +229,8 @@ Practical consequences:
 - No camera moves. No pans, dollies, zooms, orbits, or handheld. A camera move is a request to render
   background that was never described — see the drift table below.
 - If you genuinely need visual variety, get it from **expression and head angle**, not from framing.
-  A slight frown, a raised brow, a lean-in, a single nod, a small laugh. Six scenes of the same shot
-  with six different expressions reads as intentional; six different framings reads as broken.
+  A slight frown, a raised brow, a lean-in, a single nod, a small laugh. Seven scenes of the same shot
+  with seven different expressions reads as intentional; seven different framings reads as broken.
 
 ---
 
@@ -205,7 +238,9 @@ Practical consequences:
 
 Topic: *why your morning routine isn't working*. Vertical 9:16, Image Type `human`, Use Consistent
 Character ON, Reference Photo = the saved hero image, Lipsync HD Video ON, Manual Video Length 10s,
-public gallery OFF.
+public gallery OFF. (This example predates the emotional-wave requirement in `SYSTEM_PROMPT.md`; for a
+7-scene example that also demonstrates the emotional wave, see
+`references/examples/rama-ravana-final-battle.md`.)
 
 ### The frozen character bible
 
@@ -221,7 +256,7 @@ gentle shadow on the right side of his face. Shallow depth of field, shoulders-u
 eye level, static camera.
 ```
 
-### The frozen voice line
+### The frozen voice line (Video and Audio Prompt, every scene)
 
 ```
 Neutral American English accent, warm confident tone, natural conversational pace.
@@ -237,9 +272,16 @@ He looks straight into the camera, eyebrows slightly raised, expression direct a
 **Video and Audio Prompt**
 ```
 He speaks directly to the camera, small natural head movements, hands stay out of frame.
-He says, "Your morning routine isn't broken. You just built it for somebody else's life. Here's what actually changed mine."
 Neutral American English accent, warm confident tone, natural conversational pace.
 Quiet indoor room tone, no music.
+```
+**Create Lipsync Audio dialog → Video Prompt**
+```
+Actor 1 is the man in the charcoal-grey sweater. He speaks with direct, open confidence.
+```
+**Actor 1 Script** (72 chars)
+```
+Your morning routine isn't broken. You just built it for someone else's life.
 ```
 
 ### Scene 2 — the confession
@@ -252,9 +294,16 @@ He gives a small tired half-smile, head tilted a few degrees to the right.
 **Video and Audio Prompt**
 ```
 He speaks directly to the camera, a small shake of the head, hands stay out of frame.
-He says, "I woke up at five for a year. Cold plunge, journal, gratitude list. I was exhausted by ten every single morning."
 Neutral American English accent, warm confident tone, natural conversational pace.
 Quiet indoor room tone, no music.
+```
+**Create Lipsync Audio dialog → Video Prompt**
+```
+Actor 1 speaks with a small tired half-smile, voice honest and a little rueful.
+```
+**Actor 1 Script** (82 chars)
+```
+I woke at five for a year. Cold plunge, journal, gratitude list. Exhausted by ten.
 ```
 
 ### Scene 3 — the real problem
@@ -267,9 +316,16 @@ He leans a few inches toward the camera, expression serious, jaw set.
 **Video and Audio Prompt**
 ```
 He speaks directly to the camera, leaning in slightly, hands stay out of frame.
-He says, "The problem was never the wake-up time. It was that I spent my sharpest two hours answering other people's email."
 Neutral American English accent, warm confident tone, natural conversational pace.
 Quiet indoor room tone, no music.
+```
+**Create Lipsync Audio dialog → Video Prompt**
+```
+Actor 1's voice turns serious and firm, leaning in with conviction.
+```
+**Actor 1 Script** (87 chars)
+```
+The problem wasn't the wake-up time. I spent my sharpest hours on other people's email.
 ```
 
 ### Scene 4 — the change
@@ -282,9 +338,16 @@ He nods once, mouth closed, a small confident smile forming.
 **Video and Audio Prompt**
 ```
 He speaks directly to the camera, one firm nod, hands stay out of frame.
-He says, "So I flipped it. First thing I touch is the one task that scares me. No phone, no inbox, no exceptions."
 Neutral American English accent, warm confident tone, natural conversational pace.
 Quiet indoor room tone, no music.
+```
+**Create Lipsync Audio dialog → Video Prompt**
+```
+Actor 1 speaks with a firm, decisive nod in his voice, confident and resolved.
+```
+**Actor 1 Script** (69 chars)
+```
+So I flipped it. First thing I touch is the task that scares me most.
 ```
 
 ### Scene 5 — the proof
@@ -297,9 +360,16 @@ He raises his eyebrows and gives a small open-mouthed laugh, eyes creasing.
 **Video and Audio Prompt**
 ```
 He speaks directly to the camera, brief light laugh, hands stay out of frame.
-He says, "It took about nine days to feel normal. By week three I was finishing the hard thing before most people started."
 Neutral American English accent, warm confident tone, natural conversational pace.
 Quiet indoor room tone, no music.
+```
+**Create Lipsync Audio dialog → Video Prompt**
+```
+Actor 1's voice lightens with a small proud laugh, pleased and energized.
+```
+**Actor 1 Script** (80 chars)
+```
+It took nine days to feel normal. By week three I finished the hard thing first.
 ```
 
 ### Scene 6 — the call to action
@@ -312,9 +382,16 @@ He looks straight into the camera, expression calm and steady, chin slightly low
 **Video and Audio Prompt**
 ```
 He speaks directly to the camera, still and steady, hands stay out of frame.
-He says, "Pick one task tonight. Do it first tomorrow, before anything else. That's the whole routine. Try it for nine days."
 Neutral American English accent, warm confident tone, natural conversational pace.
 Quiet indoor room tone, no music.
+```
+**Create Lipsync Audio dialog → Video Prompt**
+```
+Actor 1 speaks calm and steady, warm and inviting, direct to camera.
+```
+**Actor 1 Script** (85 chars)
+```
+Pick one task tonight. Do it first tomorrow. That's the whole routine. Try nine days.
 ```
 
 ### What changed across the six scenes
@@ -322,9 +399,9 @@ Quiet indoor room tone, no music.
 | Frozen (identical in all 6) | Variable (changes each scene) |
 |---|---|
 | Entire character bible | The single action/expression line at the end of the Image Prompt |
-| Location, wall, lamp, lighting, shadow | The motion sentence in the video prompt |
-| Framing and camera clause | The spoken line |
-| Accent / tone / pace line | — |
+| Location, wall, lamp, lighting, shadow | The motion sentence in the Video and Audio Prompt |
+| Framing and camera clause | The delivery direction in the Lipsync dialog's Video Prompt |
+| Accent / tone / pace line (Video and Audio Prompt) | The Actor 1 Script line and its emotion |
 | Room-sound clause | — |
 | Reference Photo | — |
 
@@ -335,7 +412,7 @@ of scenes, not the per-clip length — the 10s ceiling is a model limit, not a p
 
 ## 7. Drift triggers — the things that break the character
 
-Every row below is a real failure mode. Scan your six prompts for all of them before you queue the
+Every row below is a real failure mode. Scan your prompts for all of them before you queue the
 first batch.
 
 | Trigger | What actually happens | Fix |
@@ -350,8 +427,9 @@ first batch.
 | **Time-of-day language** — "later", "that evening", "the next morning" | Lighting and shadow direction flip | Keep the same lighting clause. Never reference elapsed time in the prompt |
 | **Adding props mid-sequence** — a mug, headphones, a phone | The prop persists into later clips inconsistently, or displaces the framing | No props. If a prop is essential it goes in the bible from scene 1 |
 | **Rewriting the bible for "variety"** | Paraphrase is a new description. The model reads it as a new person | The bible is copy-paste only. Variety comes from the action line |
-| **Changing the accent/tone line between scenes** | Audible voice shift mid-video — as damaging as a face shift | Freeze the voice line alongside the bible |
-| **Letting the spoken line run long** | The clip exceeds ~10s and truncates mid-sentence | 20-25 words per clip, counted |
+| **Changing the accent/tone line between scenes** | Audible voice shift mid-video — as damaging as a face shift | Freeze the voice line in the Video and Audio Prompt alongside the bible |
+| **Writing dialogue into the Video and Audio Prompt** | Risks closed-mouth narration — audio plays, lips don't move | Speech only in Actor 1 Script, in the Create Lipsync Audio dialog |
+| **Letting the Actor 1 Script line run long** | The dialog rejects it outright once it exceeds 100 characters | Under 100 characters, counted, for every scene |
 | **Leaving prompt auto-enhancement on for scene prompts** | The enhancer rewrites your text before generation, which can substitute its own wardrobe and background wording | See the note below |
 
 ### Note on the auto-enhance checkboxes (partly unverified)
@@ -373,11 +451,11 @@ measurably reduces drift, were not observed in recon. Handle defensively at runt
 
 ### Runtime consistency check (defensive, unverified signals)
 
-After the first batch of 5 completes, look at the results. If a clip shows a different garment,
-different wall, or a visibly different face, regenerate that one clip with the identical prompt
-before continuing — the fault is usually sampling variance, not the prompt. Do not edit the bible in
-response to one bad clip. There is no verified in-app "consistency score" or similar signal; judge by
-eye from a screenshot.
+After the first batch completes, look at the results. If a clip shows a different garment,
+different wall, a visibly different face, or a closed mouth while audio plays, regenerate that one
+clip with the identical prompts before continuing — the fault is usually sampling variance or a
+field mix-up, not the prompt itself. Do not edit the bible in response to one bad clip. There is no
+verified in-app "consistency score" or similar signal; judge by eye from a screenshot.
 
 ---
 
@@ -385,23 +463,27 @@ eye from a screenshot.
 
 **Reference Photo 2** exists in the modal and is marked Optional — it is the second character slot.
 This workflow does not use it by default. If a video genuinely needs two people, both characters need
-their own full bible, both bibles go in the same Image Prompt, and the framing clause changes to a
-two-shot — which contradicts the close-up guidance and will drift more. Default to one character.
+their own full bible, both bibles go in the same Image Prompt, the framing clause changes to a
+two-shot (which contradicts the close-up guidance and will drift more), and the Create Lipsync Audio
+dialog's "Add Actor 2" reveals an Actor 2 Script field. Default to one character.
 
 ---
 
 ## 9. Pre-flight checklist
 
-Before queuing any batch, confirm all of these against your six prompt pairs:
+Before queuing any batch, confirm all of these against your scene prompts:
 
-- [ ] The character bible string is **byte-identical** in all six Image Prompts
+- [ ] The character bible string is **byte-identical** in every Image Prompt
 - [ ] Only the final action line differs between Image Prompts
 - [ ] No Image Prompt contains speech, dialogue, or audio words
-- [ ] Every Video and Audio Prompt has: motion sentence, quoted line, voice line, room-sound clause
-- [ ] The voice line is byte-identical in all six
-- [ ] Every spoken line is 20-25 words
+- [ ] No Video and Audio Prompt contains a quoted spoken line — dialogue lives only in Actor 1 Script
+- [ ] Every Video and Audio Prompt has: motion sentence, voice line, room-sound clause
+- [ ] The voice line (Video and Audio Prompt) is byte-identical in every scene
+- [ ] Every Actor 1 Script line is **under 100 characters**
+- [ ] Every scene's Lipsync dialog Video Prompt directs delivery/emotion, with no dialogue text in it
 - [ ] No camera-move verbs anywhere
 - [ ] No hands, no props, no standing, no walking
 - [ ] Aspect is **Vertical 9:16**, Image Type is **human**
 - [ ] **Use Consistent Character** is ticked and the Reference Photo is set to the saved hero image
+- [ ] **Lipsync HD Video** is ticked for every scene
 - [ ] **Share this in the public gallery** is **unticked**
