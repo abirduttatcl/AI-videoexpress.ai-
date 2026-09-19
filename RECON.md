@@ -14,12 +14,14 @@ never as a promise.
 
 ---
 
-## 0. Two workflow generations in this repo — read this first
+## 0. Reconciled — where speech goes (was two workflow generations)
 
-This package currently contains **two different, non-identical** descriptions of how
-speech reaches the video, both presented as authoritative:
+This package used to contain **two different, non-identical** descriptions of how speech
+reaches the video. `SKILL.md` and `references/character-prompting.md` have since been
+updated to match `SYSTEM_PROMPT.md`; this section is kept as a record of the divergence
+and the reasoning for resolving it the way it was resolved.
 
-| | `SYSTEM_PROMPT.md` (root, "canonical source") | `SKILL.md` + `references/character-prompting.md` |
+| | `SYSTEM_PROMPT.md` (root, "canonical source") | `SKILL.md` + `references/character-prompting.md` (pre-fix) |
 |---|---|---|
 | Lipsync | `Lipsync HD Video` ticked **always** | Ticked for talking scenes |
 | Where speech goes | The separate **"Create Lipsync Audio"** dialog that opens after `Create Video`, in **Actor 1 Script** (`#opt_prompt_actor1`) | Directly in the **Video and Audio Prompt** textarea, in quotes |
@@ -29,10 +31,23 @@ speech reaches the video, both presented as authoritative:
 
 `SYSTEM_PROMPT.md`'s TRAP 4 is explicit that writing dialogue into the Video and Audio
 Prompt is a **known failure mode** ("closed-mouth narration") on this app, which makes it
-the more recent, more specific — and load-bearing — account. Treat `SYSTEM_PROMPT.md`'s
-Lipsync-dialog flow as authoritative when the two disagree, and treat this divergence as
-an open cleanup item for `SKILL.md` / `references/character-prompting.md` rather than
-something silently picked between at runtime.
+the more recent, more specific — and load-bearing — account. `SKILL.md` and
+`references/character-prompting.md` now follow `SYSTEM_PROMPT.md`'s Lipsync-dialog flow,
+100-character Actor 1 Script limit, 7-scene default, and emotional-wave requirement
+throughout. `references/examples/rama-ravana-final-battle.md` is a full worked example in
+this current layout; the 6-scene example retained in `character-prompting.md` §6 has been
+updated to the same field layout (it predates the emotional-wave rule, which is why it
+isn't tagged with emotions — see the Rama–Ravana example for that).
+
+One further, separate inconsistency was noticed but **not** resolved here and is left for
+a future pass: `SYSTEM_PROMPT.md` itself gives two different accounts of how parallel the
+lipsync generation step is. Its `LOCKED DEFAULTS` and `STEP 4 BATCH LOOP` describe queuing
+up to 5 scenes in parallel, matching the platform-wide 5-generation limit; but its own
+`THE CORRECT SEQUENCE` §B step 6 describes the Create Video button going disabled while a
+lipsync job runs, "effectively ONE AT A TIME." `SKILL.md` Phase 6 now tells the agent to
+verify empirically (screenshot after each `Create Video` click) rather than assume either
+account, since resolving which is actually true requires a live run this package can't
+perform.
 
 ---
 
@@ -142,4 +157,6 @@ the full fallback script.
   polling patterns, and ready-to-paste JavaScript snippets.
 - `references/character-prompting.md` — the character-bible method and a worked
   6-scene example.
+- `references/examples/rama-ravana-final-battle.md` — a full 7-scene worked example
+  including the emotional wave.
 - `references/troubleshooting.md` — symptom → cause → fix runbook.
